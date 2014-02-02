@@ -1,0 +1,11 @@
+## Interface: 50400
+## Author: JerichoR
+## Title: |cffC495DDTukui|r |cffffd200AuraMonitor|r
+## Notes: Small monitor frame to prominently track selected auras.
+## X-Category: Buffs/Debuffs
+## OptionalDeps: Tukui
+
+auras.lua
+config.lua
+functions.lua
+monitor.lua
