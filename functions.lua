@@ -20,7 +20,7 @@ ns.update = function(self, elapsed)
 end
     
 ns.resetIcon = function(aura, spellID, stacks, expires)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor (resetIcon): ".. spellID .. " expires " .. expires) end
+	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: resetIcon ".. spellID .. " expires " .. expires) end
 	
 	local icon, cd, count = aura.icon, aura.cd, aura.count
     
@@ -40,7 +40,7 @@ ns.resetIcon = function(aura, spellID, stacks, expires)
 end
 
 ns.expireIcon = function(aura, spellID)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor (expireIcon): ".. spellID) end
+	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: expireIcon ".. spellID) end
 	
 	local icon, cd, count = aura.icon, aura.cd, aura.count
     
@@ -58,7 +58,7 @@ ns.expireIcon = function(aura, spellID)
 end
 
 ns.OnAuraChanged = function(monitorFrame, event, unit)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor (OnAuraChanged): ".. UnitName(unit)) end
+	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: ".. UnitName(unit)) end
 	
 	if not UnitIsUnit(unit, "player") then return end
 	
@@ -68,7 +68,7 @@ ns.OnAuraChanged = function(monitorFrame, event, unit)
 	repeat 
 		local name, _, _, count, _, _, expires, _, _, _, spellID = UnitAura(unit, index)
         
-		if ns.debug and spellID then ChatFrame1:AddMessage("AuraMonitor (OnAuraChanged): ".. name .. " - " .. spellID) end
+		if ns.debug and spellID then ChatFrame1:AddMessage("AuraMonitor: ".. name .. " - " .. spellID) end
         
 		if ns.tracked[spellID] then
 			tinsert(current, spellID, { count, expires })
