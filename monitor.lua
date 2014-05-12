@@ -1,15 +1,12 @@
 local ADDON_NAME, ns = ...
 
 ns.debug = false
+if ns.debug then ChatFrame1:AddMessage("AuraMonitor loading") end
 
 local config = ns.config
 
-if ns.debug then ChatFrame1:AddMessage("AuraMonitor loading") end
 local monitor = CreateFrame("Frame", "AuraMonitor", UIParent)
-
 monitor.tracked = {}
-monitor.active = {}
-monitor.passive = {}
 
 if IsAddOnLoaded("Tukui") then
     local T, C, _ = unpack(Tukui) -- Import: T - functions, constants, variables; C - config; L - locales
@@ -37,6 +34,6 @@ else
     monitor:SetAllPoints("CENTER", UIParent, "CENTER", config.monitor.posx, config.monitor.posy)
 end
 
+monitor:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 monitor:RegisterEvent("UNIT_AURA")
 monitor:RegisterEvent("ADDON_LOADED")
-monitor:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
