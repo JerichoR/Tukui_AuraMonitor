@@ -1,6 +1,12 @@
 local ADDON_NAME, ns = ...
 
-ns.update = function(self, elapsed)
+local monitor = AuraMonitor
+local auras = ns.auras
+local myClass = select(2, UnitClass("player"))
+local config = ns.config
+local font = config.font
+
+monitor.updateTimer = function(self, elapsed)
     if self.nextUpdate > 0 then
         self.nextUpdate = self.nextUpdate - elapsed
     else
@@ -19,7 +25,7 @@ ns.update = function(self, elapsed)
     end
 end
     
-ns.resetIcon = function(aura, spellID, stacks, expires)
+monitor.resetIcon = function(aura, spellID, stacks, expires)
 	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: resetIcon ".. spellID .. " expires " .. expires) end
 	
 	local icon, cd, count = aura.icon, aura.cd, aura.count
@@ -28,18 +34,18 @@ ns.resetIcon = function(aura, spellID, stacks, expires)
     aura.expiryTime = expires
     aura.stacks = stacks
     
-    aura:SetScript("OnUpdate", aura.update)
+    aura:SetScript("OnUpdate", aura.updateTimer)
 	
     aura:Show()
     icon:Show()
     cd:Show()
     count:Show()
     
-	ns.active[spellID] = aura
-	ns.passive[spellID] = nil
+	monitor.active[spellID] = aura
+	monitor.passive[spellID] = nil
 end
 
-ns.expireIcon = function(aura, spellID)
+monitor.expireIcon = function(aura, spellID)
 	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: expireIcon ".. spellID) end
 	
 	local icon, cd, count = aura.icon, aura.cd, aura.count
@@ -53,11 +59,11 @@ ns.expireIcon = function(aura, spellID)
     count:SetText("")
     aura:SetScript("OnUpdate", nil)
 	
-    ns.active[spellID] = nil
-	ns.passive[spellID] = aura
+    monitor.active[spellID] = nil
+	monitor.passive[spellID] = aura
 end
 
-ns.OnAuraChanged = function(monitorFrame, event, unit)
+monitor.UNIT_AURA = function(monitorFrame, event, unit)
 	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: ".. UnitName(unit)) end
 	
 	if not UnitIsUnit(unit, "player") then return end
@@ -70,16 +76,16 @@ ns.OnAuraChanged = function(monitorFrame, event, unit)
         
 		if ns.debug and spellID then ChatFrame1:AddMessage("AuraMonitor: ".. name .. " - " .. spellID) end
         
-		if ns.tracked[spellID] then
+		if monitor.tracked[spellID] then
 			tinsert(current, spellID, { count, expires })
 		end
         
 		index = index + 1
 	until spellID == nil
 	
-	for spellID, aura in pairs(ns.active) do
+	for spellID, aura in pairs(monitor.active) do
 		if not current[spellID] then
-			ns.expireIcon(aura, spellID)
+			monitor.expireIcon(aura, spellID)
         else
             local count, expires = unpack(current[spellID])
             aura.stacks = count
@@ -87,10 +93,54 @@ ns.OnAuraChanged = function(monitorFrame, event, unit)
 		end
 	end
 	
-	for spellID, aura in pairs(ns.passive) do
+	for spellID, aura in pairs(monitor.passive) do
 		if current[spellID] then
 			local count, expires = unpack(current[spellID])
-			ns.resetIcon(aura, spellID, count, expires)
+			monitor.resetIcon(aura, spellID, count, expires)
 		end
 	end 
+end
+
+monitor.ADDON_LOADED = function(monitorFrame, event, addon)
+	if auras[myClass] then
+		for spellID, settings in pairs(auras[myClass]) do
+			local _, _, image = GetSpellInfo(spellID)
+			
+			local aura = CreateFrame("Frame", nil, monitor)
+			aura:SetSize(config.aura.width, config.aura.height)
+			aura:SetPoint("LEFT", monitor, "LEFT", (config.aura.width + config.aura.spacing) * settings.index, 0)
+			aura.updatefreq = 0.3
+			aura.treshhold_show = settings.show
+			aura.treshhold_red = settings.red
+			
+			local icon = aura:CreateTexture(nil, "OVERLAY")
+			icon:SetAllPoints(aura)
+			icon:SetTexture(image)
+			aura.icon = icon
+			
+			local cdConf = config.aura.cd
+			local cd = aura:CreateFontString(nil, "OVERLAY")
+			cd:SetFont(font, cdConf.fontSize, cdConf.fontFlag)
+			cd:SetPoint(cdConf.position[1], aura, cdConf.position[2], cdConf.position[3], cdConf.position[4])
+			aura.cd = cd
+			
+			local countConf = config.aura.count
+			local count = aura:CreateFontString(nil, "OVERLAY")
+			count:SetFont(font, countConf.fontSize, countConf.fontFlag)
+			count:SetPoint(countConf.position[1], aura, countConf.position[2], countConf.position[3], countConf.position[4])
+			aura.count = count
+			
+			aura.updateTimer = monitor.updateTimer
+			
+			aura:Hide()
+			icon:Hide()
+			cd:Hide()
+			count:Hide()
+			
+			monitor.tracked[spellID] = true
+			monitor.passive[spellID] = aura
+		end
+	end
+	
+	monitor:UNIT_AURA("UNIT_AURA", "player")
 end

@@ -7,5 +7,5 @@
 
 auras.lua
 config.lua
-functions.lua
 monitor.lua
+functions.lua

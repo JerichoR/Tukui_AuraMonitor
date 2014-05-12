@@ -23,4 +23,5 @@ ns.config = {
             position = { "BOTTOMRIGHT", "BOTTOMRIGHT", 7, -4 },
         },
     },
+	font = "Fonts\\FRIZQT__.TTF",
 }
