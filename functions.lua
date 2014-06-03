@@ -12,7 +12,20 @@ monitor.updateTimer = function(self, elapsed)
     else
         self.nextUpdate = self.updatefreq
         local remaining = self.expirationTime - GetTime()
-        if remaining < self.treshhold_red then -- red color for timer < treshhold_red s
+		if remaining < 0 then
+			if self:IsShown() then
+				local icon, cd, count = self.icon, self.cd, self.count
+				
+				self:Hide()
+				icon:Hide()
+				cd:Hide()
+				cd:SetText("")
+				count:Hide()
+				count:SetText("")
+			end
+			self:SetScript("OnUpdate", nil)
+			return
+        elseif remaining < self.treshhold_red then -- red color for timer < treshhold_red s
             self.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
             self.nextUpdate = 0.1
         elseif remaining < self.treshhold_show then -- default color 
@@ -32,32 +45,17 @@ monitor.updateAura = function(aura, stacks, expirationTime)
     aura.nextUpdate = 0
     aura.expirationTime = expirationTime
     aura.stacks = stacks
-    
+    aura:SetScript("OnUpdate", aura.updateTimer)
+	
     if not aura:IsShown() then
         local icon, cd, count = aura.icon, aura.cd, aura.count
         
+		aura:SetScript("OnUpdate", aura.updateTimer)
+		
         aura:Show()
         icon:Show()
         cd:Show()
         count:Show()
-        aura:SetScript("OnUpdate", aura.updateTimer)
-    end
-end
-
-monitor.expireAura = function(aura)
-    if ns.debug then ChatFrame1:AddMessage("AuraMonitor: expireIcon ".. aura.name) end
-    
-    if aura:IsShown() then
-        local icon, cd, count = aura.icon, aura.cd, aura.count
-        
-        aura:Hide()
-        icon:Hide()
-        cd:Hide()
-        count:Hide()
-        
-        cd:SetText("")
-        count:SetText("")
-        aura:SetScript("OnUpdate", nil)
     end
 end
 
@@ -65,14 +63,12 @@ monitor.UNIT_AURA = function(monitorFrame, event, unit)
     if ns.debug then ChatFrame1:AddMessage("AuraMonitor: ".. UnitName(unit)) end
     
     if not UnitIsUnit(unit, "player") then return end
-    
+	
     for name, aura in pairs(monitor.tracked) do
-        local _, _, _, count, _, duration, expirationTime, _, _, _, spellId = UnitAura("player", name)
-        if duration and duration > 0 then
-            monitor.updateAura(aura, count, expirationTime)
-        else
-            monitor.expireAura(aura)
-        end
+        local _, _, _, count, _, _, expirationTime, _, _, _, _ = UnitAura("player", name)
+		if expirationTime and expirationTime > GetTime() then
+			monitor.updateAura(aura, count, expirationTime)
+		end
     end
 end
 

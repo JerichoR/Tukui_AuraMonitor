@@ -3,6 +3,7 @@ local ADDON_NAME, ns = ...
 ns.auras = {
     PRIEST = {
         -- Shadow
+		[137590] = { index=3, show=11, red=11 }, -- Tempus Repit
         -- Holy
         -- Discipline
         [81700] = { index=0, show=19, red=6 },  -- Archangel
