@@ -5,6 +5,7 @@ local auras = ns.auras
 local myClass = select(2, UnitClass("player"))
 local config = ns.config
 local font = config.font
+local playerGUID = UnitGUID("player")
 
 monitor.updateTimer = function(self, elapsed)
     if self.nextUpdate > 0 then
@@ -12,20 +13,7 @@ monitor.updateTimer = function(self, elapsed)
     else
         self.nextUpdate = self.updatefreq
         local remaining = self.expirationTime - GetTime()
-		if remaining < 0 then
-			if self:IsShown() then
-				local icon, cd, count = self.icon, self.cd, self.count
-				
-				self:Hide()
-				icon:Hide()
-				cd:Hide()
-				cd:SetText("")
-				count:Hide()
-				count:SetText("")
-			end
-			self:SetScript("OnUpdate", nil)
-			return
-        elseif remaining < self.treshhold_red then -- red color for timer < treshhold_red s
+        if remaining < self.treshhold_red then -- red color for timer < treshhold_red s
             self.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
             self.nextUpdate = 0.1
         elseif remaining < self.treshhold_show then -- default color 
@@ -38,38 +26,56 @@ monitor.updateTimer = function(self, elapsed)
         end
     end
 end
-    
-monitor.updateAura = function(aura, stacks, expirationTime)
-    if ns.debug then ChatFrame1:AddMessage("AuraMonitor: updateAura ".. aura.name .. " expires " .. expirationTime) end
-    
-    aura.nextUpdate = 0
-    aura.expirationTime = expirationTime
-    aura.stacks = stacks
-    aura:SetScript("OnUpdate", aura.updateTimer)
+
+monitor.COMBAT_LOG_EVENT_UNFILTERED = function(self, event, timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, auraType, amount)
+	if sourceGUID ~= playerGUID then return end
+	local aura = self.tracked[spellName]
+	if aura and monitor[subevent] then 
+		monitor[subevent](aura)
+	end
+end
+
+monitor.SPELL_AURA_APPLIED = function(aura) 
+	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_APPLIED: " .. aura.name) end
 	
-    if not aura:IsShown() then
-        local icon, cd, count = aura.icon, aura.cd, aura.count
-        
-		aura:SetScript("OnUpdate", aura.updateTimer)
-		
+	local _, _, _, count, _, _, expirationTime, _, _, _, _ = UnitAura("player", aura.name)
+	aura.nextUpdate = 0
+	aura.expirationTime = expirationTime
+	aura.stacks = count
+	
+	if not aura:IsShown() then
+		local icon, cd, count = aura.icon, aura.cd, aura.count
         aura:Show()
         icon:Show()
         cd:Show()
         count:Show()
-    end
+		aura:SetScript("OnUpdate", aura.updateTimer)
+	end
 end
 
-monitor.UNIT_AURA = function(monitorFrame, event, unit)
-    if ns.debug then ChatFrame1:AddMessage("AuraMonitor: ".. UnitName(unit)) end
-    
-    if not UnitIsUnit(unit, "player") then return end
+monitor.SPELL_AURA_APPLIED_DOSE = function(aura)
+	monitor.SPELL_AURA_APPLIED(aura)
+end
+
+monitor.SPELL_AURA_REFRESH = function(aura)
+	monitor.SPELL_AURA_APPLIED(aura)
+end
+
+monitor.SPELL_AURA_REMOVED = function(aura)
+	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_REMOVED: " .. aura.name) end
 	
-    for name, aura in pairs(monitor.tracked) do
-        local _, _, _, count, _, _, expirationTime, _, _, _, _ = UnitAura("player", name)
-		if expirationTime and expirationTime > GetTime() then
-			monitor.updateAura(aura, count, expirationTime)
-		end
-    end
+	local icon, cd, count = aura.icon, aura.cd, aura.count
+	aura:SetScript("OnUpdate", nil)
+	aura:Hide()
+	icon:Hide()
+	cd:Hide()
+	cd:SetText("")
+	count:Hide()
+	count:SetText("")
+end
+
+monitor.SPELL_AURA_REMOVED_DOSE = function(aura)
+	monitor.SPELL_AURA_APPLIED(aura)
 end
 
 monitor.ADDON_LOADED = function(monitorFrame, event, addon)
@@ -114,5 +120,5 @@ monitor.ADDON_LOADED = function(monitorFrame, event, addon)
         end
     end
     
-    monitor:UNIT_AURA("UNIT_AURA", "player")
+    --monitor:UNIT_AURA("UNIT_AURA", "player")
 end

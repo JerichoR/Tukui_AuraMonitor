@@ -35,5 +35,5 @@ else
 end
 
 monitor:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
-monitor:RegisterEvent("UNIT_AURA")
 monitor:RegisterEvent("ADDON_LOADED")
+monitor:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
