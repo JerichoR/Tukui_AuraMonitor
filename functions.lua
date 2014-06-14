@@ -10,21 +10,29 @@ local playerGUID = UnitGUID("player")
 monitor.updateTimer = function(self, elapsed)
     if self.nextUpdate > 0 then
         self.nextUpdate = self.nextUpdate - elapsed
-    else
-        self.nextUpdate = self.updatefreq
-        local remaining = self.expirationTime - GetTime()
-        if remaining < self.treshhold_red then -- red color for timer < treshhold_red s
-            self.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
-            self.nextUpdate = 0.1
-        elseif remaining < self.treshhold_show then -- default color 
-            self.cd:SetFormattedText("|cffffffff%d|r", remaining)
-        else -- dont show timer > treshhold_show s
-            self.cd:SetText("")
-        end
-        if self.stacks > 0 then
-            self.count:SetFormattedText("|cffffffff%d|r", self.stacks)
-        end
+		return
     end
+	
+	if not self.expirationTime then 
+		_, _, _, self.stacks, _, _, self.expirationTime, _, _, _, _ = UnitAura("player", self.name)
+		self.nextUpdate = 0.1
+		return
+	end
+	
+	self.nextUpdate = self.updatefreq
+	
+	local remaining = self.expirationTime - GetTime()
+	if remaining < self.treshhold_red then -- red color for timer < treshhold_red s
+		self.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
+		self.nextUpdate = 0.1
+	elseif remaining < self.treshhold_show then -- default color 
+		self.cd:SetFormattedText("|cffffffff%d|r", remaining)
+	else -- dont show timer > treshhold_show s
+		self.cd:SetText("")
+	end
+	if self.stacks and self.stacks > 0 then
+		self.count:SetFormattedText("|cffffffff%d|r", self.stacks)
+	end
 end
 
 monitor.COMBAT_LOG_EVENT_UNFILTERED = function(self, event, timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, auraType, amount)
@@ -38,10 +46,8 @@ end
 monitor.SPELL_AURA_APPLIED = function(aura) 
 	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_APPLIED: " .. aura.name) end
 	
-	local _, _, _, count, _, _, expirationTime, _, _, _, _ = UnitAura("player", aura.name)
 	aura.nextUpdate = 0
-	aura.expirationTime = expirationTime
-	aura.stacks = count
+	aura.expirationTime = nil
 	
 	if not aura:IsShown() then
 		local icon, cd, count = aura.icon, aura.cd, aura.count
@@ -118,7 +124,6 @@ monitor.ADDON_LOADED = function(monitorFrame, event, addon)
             
             monitor.tracked[name] = aura
         end
+		monitor:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     end
-    
-    --monitor:UNIT_AURA("UNIT_AURA", "player")
 end

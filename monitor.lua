@@ -36,4 +36,4 @@ end
 
 monitor:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 monitor:RegisterEvent("ADDON_LOADED")
-monitor:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+--monitor:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
