@@ -1,6 +1,13 @@
 local ADDON_NAME, ns = ...
 
 ns.auras = {
+	RAID = {
+		[147207] = { index=0, row=1, show=60, red=10 }, -- Weakened Resolve (Sha of Pride)
+		[146594] = { index=1, row=1, show=20, red=20 }, -- Gift of Titans (Sha of Pride) -> 144359
+		[147042] = { index=0, row=1, show=7, red=7 }, -- Pulsing Flames (Galakras) -> 147043?
+		[144089] = { index=0, row=1, show=30, red=10 }, -- Toxic Mist (Dark Shamans) 144107 -> Toxicity
+		[144330] = { index=1, row=1, show=60, red=10 }, -- Iron Prison (Dark Shamans) -> 144331?
+	},
     PRIEST = {
         -- Shadow
 		[137590] = { index=3, show=11, red=11 }, -- Tempus Repit
@@ -8,9 +15,9 @@ ns.auras = {
         -- Discipline
         [81700] = { index=0, show=19, red=6 },  -- Archangel
         [109964] = { index=1, show=11, red=11 }, -- Spirit Shell
-        [137323] = { index=3, show=4, red=4 }, -- Lucidity (LMG)
+        [137323] = { index=3, show=4, red=4 }, -- Lucidity (LMG Proc)
         -- Test
-        --[139] = { index=4, show=15, red=4 }, -- Renew
+        [139] = { index=4, show=15, red=4 }, -- Renew
         --[77613] = { index=4, show=16, red=6 }, -- Grace
     },
     PALADIN = {
