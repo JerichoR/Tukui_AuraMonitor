@@ -2,10 +2,9 @@ local ADDON_NAME, ns = ...
 
 local monitor = AuraMonitor
 local auras = ns.auras
-local myClass = select(2, UnitClass("player"))
 local config = ns.config
 local font = config.font
-local playerGUID = UnitGUID("player")
+local playerGUID
 
 monitor.updateTimer = function(self, elapsed)
     if self.nextUpdate > 0 then
@@ -85,6 +84,8 @@ monitor.SPELL_AURA_REMOVED_DOSE = function(aura)
 end
 
 monitor.ADDON_LOADED = function(monitorFrame, event, addon)
+	local myClass = select(2, UnitClass("player"))
+	playerGUID = UnitGUID("player")
     if auras[myClass] then
         for spellId, settings in pairs(auras[myClass]) do
             local name, _, image = GetSpellInfo(spellId)
