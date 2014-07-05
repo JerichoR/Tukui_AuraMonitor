@@ -134,7 +134,8 @@ monitor.createAura = function(self, spellId, settings, row)
 	self.tracked[spellId] = aura
 end
 
-monitor.ADDON_LOADED = function()
+monitor.ADDON_LOADED = function(monitor, event, name)
+	if name ~= "Tukui_AuraMonitor" then return end
 	local myClass = select(2, UnitClass("player"))
 	playerGUID = UnitGUID("player")
     if auras[myClass] then

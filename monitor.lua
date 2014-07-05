@@ -14,7 +14,7 @@ if IsAddOnLoaded("Tukui") then
     config.font = C.media.font
     
     local mover = CreateFrame("Frame", "AuraMonitorMover", UIParent)
-    mover:SetSize(4 * ( config.aura.width + config.aura.spacing ) - config.aura.spacing, config.aura.height)
+    mover:SetSize(4 * config.aura.width + 3 * config.aura.spacing, config.aura.height)
     mover:SetPoint(unpack(config.monitor.anchor))
     mover:SetTemplate("Default")
     mover:SetBackdropBorderColor(1, 0, 0, 1)
