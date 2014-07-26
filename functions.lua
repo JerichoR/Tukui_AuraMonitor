@@ -6,32 +6,33 @@ local config = ns.config
 local font = config.font
 local playerGUID
 
-monitor.updateTimer = function(self, elapsed)
-    if self.nextUpdate > 0 then
-        self.nextUpdate = self.nextUpdate - elapsed
+monitor.updateTimer = function(aura, elapsed)
+    if aura.nextUpdate > 0 then
+        aura.nextUpdate = aura.nextUpdate - elapsed
 		return
     end
 	
-	if not self.expirationTime then 
-		_, _, _, self.stacks, _, _, self.expirationTime, _, _, _, _ = UnitAura("player", self.name)
+	aura.nextUpdate = aura.updatefreq
+	
+	if not aura.expirationTime then 
+		_, _, _, aura.stacks, _, _, aura.expirationTime = UnitAura("player", aura.name, nil, aura.filter)
+		if ns.debug then ChatFrame1:AddMessage("AuraMonitor: Timerinit: name " .. aura.name .. ", stacks " .. (aura.stacks or "na") .. ", expirationTime " .. (aura.expirationTime or "na")) end
 		return
 	end
 	
-	self.nextUpdate = self.updatefreq
-	
-	local remaining = self.expirationTime - GetTime()
+	local remaining = aura.expirationTime - GetTime()
 	if remaining < 0 then
-		self:hideAura()
-	elseif remaining < self.treshhold_red then -- red color for timer < treshhold_red s
-		self.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
-		self.nextUpdate = 0.1
-	elseif remaining < self.treshhold_show then -- default color 
-		self.cd:SetFormattedText("|cffffffff%d|r", remaining)
+		aura:hideAura()
+	elseif remaining < aura.treshhold_red then -- red color for timer < treshhold_red s
+		aura.cd:SetFormattedText("|cffff0000%2.1f|r", remaining)
+		aura.nextUpdate = 0.1
+	elseif remaining < aura.treshhold_show then -- default color 
+		aura.cd:SetFormattedText("|cffffffff%d|r", remaining)
 	else -- dont show timer > treshhold_show s
-		self.cd:SetText("")
+		aura.cd:SetText("")
 	end
-	if self.stacks and self.stacks > 0 then
-		self.count:SetFormattedText("|cffffffff%d|r", self.stacks)
+	if aura.stacks and aura.stacks > 0 then
+		aura.count:SetFormattedText("|cffffffff%d|r", aura.stacks)
 	end
 end
 
@@ -73,25 +74,16 @@ monitor.SPELL_AURA_APPLIED = function(aura)
 	aura:showAura()
 end
 
-monitor.SPELL_AURA_APPLIED_DOSE = function(aura)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_APPLIED_DOSE: " .. aura.name) end
-	monitor.SPELL_AURA_APPLIED(aura)
-end
-
-monitor.SPELL_AURA_REFRESH = function(aura)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_REFRESH: " .. aura.name) end
-	monitor.SPELL_AURA_APPLIED(aura)
-end
-
 monitor.SPELL_AURA_REMOVED = function(aura)
 	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_REMOVED: " .. aura.name) end
 	aura:hideAura()
 end
 
-monitor.SPELL_AURA_REMOVED_DOSE = function(aura)
-	if ns.debug then ChatFrame1:AddMessage("AuraMonitor: SPELL_AURA_REMOVED_DOSE: " .. aura.name) end
-	monitor.SPELL_AURA_APPLIED(aura)
-end
+monitor.SPELL_AURA_APPLIED_DOSE = SPELL_AURA_APPLIED
+
+monitor.SPELL_AURA_REFRESH = SPELL_AURA_APPLIED
+
+monitor.SPELL_AURA_REMOVED_DOSE = SPELL_AURA_APPLIED
 
 monitor.createAura = function(self, spellId, settings, row) 
 	local name, _, image = GetSpellInfo(spellId)
@@ -102,6 +94,7 @@ monitor.createAura = function(self, spellId, settings, row)
 	aura.updatefreq = 0.3
 	aura.treshhold_show = settings.show
 	aura.treshhold_red = settings.red
+	aura.filter = settings.filter
 	
 	local icon = aura:CreateTexture(nil, "OVERLAY")
 	icon:SetAllPoints(aura)
@@ -134,8 +127,7 @@ monitor.createAura = function(self, spellId, settings, row)
 	self.tracked[spellId] = aura
 end
 
-monitor.ADDON_LOADED = function(monitor, event, name)
-	if name ~= "Tukui_AuraMonitor" then return end
+monitor.PLAYER_LOGIN = function(monitor, event)
 	local myClass = select(2, UnitClass("player"))
 	playerGUID = UnitGUID("player")
     if auras[myClass] then
