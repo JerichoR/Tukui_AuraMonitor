@@ -1,6 +1,6 @@
 local ADDON_NAME, ns = ...
 
-local monitor = AuraMonitor
+local monitor = ns.monitor
 local auras = ns.auras
 local config = ns.config
 local font = config.font
@@ -79,11 +79,17 @@ monitor.SPELL_AURA_REMOVED = function(aura)
 	aura:hideAura()
 end
 
-monitor.SPELL_AURA_APPLIED_DOSE = SPELL_AURA_APPLIED
+monitor.SPELL_AURA_APPLIED_DOSE = function(aura)
+	monitor.SPELL_AURA_APPLIED(aura)
+end
 
-monitor.SPELL_AURA_REFRESH = SPELL_AURA_APPLIED
+monitor.SPELL_AURA_REFRESH = function(aura) 
+	monitor.SPELL_AURA_APPLIED(aura)
+end
 
-monitor.SPELL_AURA_REMOVED_DOSE = SPELL_AURA_APPLIED
+monitor.SPELL_AURA_REMOVED_DOSE = function(aura)
+	monitor.SPELL_AURA_APPLIED(aura)
+end 
 
 monitor.createAura = function(self, spellId, settings, row) 
 	local name, _, image = GetSpellInfo(spellId)
@@ -130,6 +136,41 @@ end
 monitor.PLAYER_LOGIN = function(monitor, event)
 	local myClass = select(2, UnitClass("player"))
 	playerGUID = UnitGUID("player")
+
+	if IsAddOnLoaded("Tukui") then
+	    local T, C, L = Tukui:unpack()
+	    
+	    config.aura.width = C.AuraMonitor.AuraSize
+	    config.aura.height = C.AuraMonitor.AuraSize
+	    config.aura.count.fontSize = C.AuraMonitor.FontSize
+	    config.aura.cd.fontSize = C.AuraMonitor.FontSize
+
+	    -- extract font path
+	    local deleteme = monitor:CreateFontString(nil, "BACKGROUND")
+	    deleteme:SetFontObject(T.GetFont(C.AuraMonitor.Font))
+	    deleteme:Hide()
+	    config.font, _, _ = deleteme:GetFont()
+	    
+	    -- create mover
+	    local mover = CreateFrame("Frame", "AuraMonitorMover", UIParent)
+	    mover:SetSize(4 * config.aura.width + 3 * config.aura.spacing, config.aura.height)
+	    mover:SetPoint(unpack(config.anchor))
+	    mover:SetTemplate("Default")
+	    mover:SetBackdropBorderColor(1, 0, 0, 1)
+	    mover:SetMovable(true)
+	    mover:Hide()
+
+	    mover.text = mover:CreateFontString(nil, "OVERLAY")
+	    mover.text:SetFont(config.font, 12)
+	    mover.text:SetPoint("CENTER")
+	    mover.text:SetText("AuraMonitor")
+	    mover.text.Show = function() mover:Show() end
+	    mover.text.Hide = function() mover:Hide() end
+
+	    monitor:SetAllPoints(mover)
+	    T.Movers:RegisterFrame(mover)
+	end
+
     if auras[myClass] then
         for spellId, settings in pairs(auras[myClass]) do
             monitor:createAura(spellId, settings, 0)
