@@ -1,10 +1,15 @@
 local ADDON_NAME, ns = ...
+local T, C, L = Tukui:unpack()
 
 local monitor = ns.monitor
 local auras = ns.auras
-local config = ns.config
-local font = config.font
 local playerGUID
+
+local auraSize
+local font
+local fontSize 
+local fontFlags
+
 
 monitor.updateTimer = function(aura, elapsed)
     if aura.nextUpdate > 0 then
@@ -95,8 +100,8 @@ monitor.createAura = function(self, spellId, settings, row)
 	local name, _, image = GetSpellInfo(spellId)
             
 	local aura = CreateFrame("Frame", nil, self)
-	aura:SetSize(config.aura.width, config.aura.height)
-	aura:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", (config.aura.width + config.aura.spacing) * settings.index, (config.aura.height + config.aura.spacing) * row)
+	aura:SetSize(auraSize, auraSize)
+	aura:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", (auraSize + 2) * settings.index, (auraSize + 2) * row)
 	aura.updatefreq = 0.3
 	aura.treshhold_show = settings.show
 	aura.treshhold_red = settings.red
@@ -107,16 +112,14 @@ monitor.createAura = function(self, spellId, settings, row)
 	icon:SetTexture(image)
 	aura.icon = icon
 	
-	local cdConf = config.aura.cd
 	local cd = aura:CreateFontString(nil, "OVERLAY")
-	cd:SetFont(font, cdConf.fontSize, cdConf.fontFlag)
-	cd:SetPoint(cdConf.position[1], aura, cdConf.position[2], cdConf.position[3], cdConf.position[4])
+	cd:SetFont(font, fontSize, fontFlags)
+	cd:SetPoint("BOTTOMRIGHT", aura, "BOTTOMRIGHT", 7, 4)
 	aura.cd = cd
 	
-	local countConf = config.aura.count
 	local count = aura:CreateFontString(nil, "OVERLAY")
-	count:SetFont(font, countConf.fontSize, countConf.fontFlag)
-	count:SetPoint(countConf.position[1], aura, countConf.position[2], countConf.position[3], countConf.position[4])
+	count:SetFont(font, fontSize, fontFlags)
+	count:SetPoint("TOPLEFT", aura, "TOPLEFT", -3, 2)
 	aura.count = count
 	
 	aura.updateTimer = self.updateTimer
@@ -137,39 +140,9 @@ monitor.PLAYER_LOGIN = function(monitor, event)
 	local myClass = select(2, UnitClass("player"))
 	playerGUID = UnitGUID("player")
 
-	if IsAddOnLoaded("Tukui") then
-	    local T, C, L = Tukui:unpack()
-	    
-	    config.aura.width = C.AuraMonitor.AuraSize
-	    config.aura.height = C.AuraMonitor.AuraSize
-	    config.aura.count.fontSize = C.AuraMonitor.FontSize
-	    config.aura.cd.fontSize = C.AuraMonitor.FontSize
-
-	    -- extract font path
-	    local deleteme = monitor:CreateFontString(nil, "BACKGROUND")
-	    deleteme:SetFontObject(T.GetFont(C.AuraMonitor.Font))
-	    deleteme:Hide()
-	    config.font, _, _ = deleteme:GetFont()
-	    
-	    -- create mover
-	    local mover = CreateFrame("Frame", "AuraMonitorMover", UIParent)
-	    mover:SetSize(4 * config.aura.width + 3 * config.aura.spacing, config.aura.height)
-	    mover:SetPoint(unpack(config.anchor))
-	    mover:SetTemplate("Default")
-	    mover:SetBackdropBorderColor(1, 0, 0, 1)
-	    mover:SetMovable(true)
-	    mover:Hide()
-
-	    mover.text = mover:CreateFontString(nil, "OVERLAY")
-	    mover.text:SetFont(config.font, 12)
-	    mover.text:SetPoint("CENTER")
-	    mover.text:SetText("AuraMonitor")
-	    mover.text.Show = function() mover:Show() end
-	    mover.text.Hide = function() mover:Hide() end
-
-	    monitor:SetAllPoints(mover)
-	    T.Movers:RegisterFrame(mover)
-	end
+    auraSize = C.AuraMonitor.AuraSize
+	font, _, fontFlags = T.GetFont(C.AuraMonitor.Font)
+	fontSize = C.AuraMonitor.FontSize
 
     if auras[myClass] then
         for spellId, settings in pairs(auras[myClass]) do

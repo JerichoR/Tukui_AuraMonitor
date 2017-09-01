@@ -3,7 +3,7 @@
 ## Title: |cffC495DDTukui|r |cffffd200Aura Monitor|r
 ## Notes: Small monitor frame to prominently track selected auras.
 ## Version: 1.3
-## OptionalDeps: Tukui, Tukui_Config
+## RequiredDeps: Tukui, Tukui_Config
 
 auras.lua
 config.lua
