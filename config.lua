@@ -5,6 +5,7 @@ C["AuraMonitor"] = {
     ["AuraSize"] = 40,
     ["Font"] = "Tukui",
     ["FontSize"] = 18,
+    -- ["FontFlags"] = "THICKOUTLINE",
 }
 
 TukuiConfig["enUS"]["AuraMonitor"] = {
@@ -20,4 +21,8 @@ TukuiConfig["enUS"]["AuraMonitor"] = {
         ["Name"] = "Font Size",
         ["Desc"] = "Set font size for cooldown and stack count",
     },
+    -- ["FontFlags"] = {
+    --     ["Name"] = "Font Flags",
+    --     ["Desc"] = "Set font style for cooldown and stack count",
+    -- },
 }

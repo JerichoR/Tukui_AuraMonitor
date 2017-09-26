@@ -16,9 +16,13 @@ ns.auras = {
     },
     PALADIN = {
         -- Holy
-        [54149] = { index=1, show=16, red=6, filter="HELPFUL" },  -- Infusion of Light
-        [203538] = { index=2, show=16, red=6, filter="HELPFUL" },
+        [54149] = { index=0, show=16, red=6, filter="HELPFUL" },  -- Infusion of Light
+        [216411] = { index=1, show=10, red=10, filter="HELPFUL" }, -- Divine Purpose
+        [214202] = { index=2, show=10, red=10, filter="HELPFUL" }, -- Rule of Law
         -- Protection
+        [132403] = { index=0, show=5, red=4, filter="HELPFUL" }, -- Shield of the Righteous
+        -- Retribution
+        [223819] = { index=0, show=12, red=4, filter="HELPFUL" }, -- Divine Purpose
     },
     DEATHKNIGHT = {
         -- Frost

@@ -65,6 +65,7 @@ end
 
 monitor.COMBAT_LOG_EVENT_UNFILTERED = function(self, event, timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, ...)
 	if destGUID ~= playerGUID then return end
+	-- if ns.debug then ChatFrame1:AddMessage("AuraMonitor: " .. subevent .. ": " .. spellName .. "(" .. spellId .. ")") end
 	local aura = self.tracked[spellId]
 	if aura and monitor[subevent] then 
 		monitor[subevent](aura)
@@ -141,8 +142,9 @@ monitor.PLAYER_LOGIN = function(monitor, event)
 	playerGUID = UnitGUID("player")
 
     auraSize = C.AuraMonitor.AuraSize
-	font, _, fontFlags = T.GetFont(C.AuraMonitor.Font)
+	font = _G[T.GetFont(C.AuraMonitor.Font)]:GetFont()
 	fontSize = C.AuraMonitor.FontSize
+	fontFlags = "THICKOUTLINE"
 
     if auras[myClass] then
         for spellId, settings in pairs(auras[myClass]) do
